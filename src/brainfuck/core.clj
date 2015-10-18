@@ -15,7 +15,8 @@
                          (rest source))
        (= token \[) (let [[loop-ast unparsed] (parse-source (rest source))]
                       (recur (conj ast loop-ast) unparsed))
-       (= token \]) [ast (rest source)]))))
+       (= token \]) [ast (rest source)]
+       :else (recur ast (rest source))))))
 
 (defn parse [program]
   (first (parse-source program)))
@@ -25,4 +26,5 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!"))
+  (let [source (slurp *in*)]
+    (println (parse source))))
