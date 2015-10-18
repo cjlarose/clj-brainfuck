@@ -11,16 +11,17 @@
       (cond
        (nil? token) [ast ""]
        (commands token) (recur
-                         (conj ast [:command token])
+                         (conj ast token)
                          (rest source))
        (= token \[) (let [[loop-ast unparsed] (parse-source (rest source))]
-                      (recur (conj ast [:loop loop-ast]) unparsed))
+                      (recur (conj ast loop-ast) unparsed))
        (= token \]) [ast (rest source)]))))
 
 (defn parse [program]
   (first (parse-source program)))
 
 (parse "><+--[++[--],.]-.,")
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
