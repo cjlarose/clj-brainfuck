@@ -51,5 +51,7 @@
 (defn -main
   "Reads brainfuck program from stdin, then executes it"
   [& args]
-  (let [source (slurp *in*)]
-    (evaluate initial-state (parse source))))
+  (->> (first args)
+       (slurp)
+       (parse)
+       (evaluate initial-state)))
