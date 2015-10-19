@@ -51,7 +51,7 @@
    :data-pointer 0})
 
 (defn -main
-  "Reads brainfuck program from stdin, then executes it"
+  "Reads brainfuck program from file, then executes it"
   [& args]
   (->> (first args)
        (slurp)
