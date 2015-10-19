@@ -47,7 +47,7 @@
   (reduce evaluate-stmt state stmts))
 
 (def initial-state
-  {:tape (apply vector-of :byte (repeat 30000 0))
+  {:tape (apply vector-of :short (repeat 30000 0))
    :data-pointer 0})
 
 (defn -main
