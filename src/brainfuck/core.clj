@@ -35,6 +35,8 @@
     \. (do
          (print (char (nth tape data-pointer)))
          state)
+    \, (let [ch (.read System/in)]
+         (assoc-in state [:tape data-pointer] ch))
     (loop [{:keys [tape data-pointer] :as cur-state} state]
       (if (= (nth tape data-pointer) 0)
         cur-state
