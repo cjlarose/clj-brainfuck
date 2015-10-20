@@ -21,28 +21,22 @@
 (defn parse [program]
   (first (parse-source program)))
 
-(declare evaluate)
-
-(defn evaluate-stmt
-  "Given the current machine state and a statement,
-  yield new machine state"
-  [{:keys [tape data-pointer] :as state} stmt]
-  (case stmt
-    \> (update state :data-pointer inc)
-    \< (update state :data-pointer dec)
-    \+ (update-in state [:tape data-pointer] inc)
-    \- (update-in state [:tape data-pointer] dec)
-    \. (do (print (char (nth tape data-pointer))) state)
-    \, (let [ch (.read System/in)]
-         (assoc-in state [:tape data-pointer] ch))
-    (loop [{:keys [tape data-pointer] :as cur-state} state]
-      (if (= (nth tape data-pointer) 0)
-        cur-state
-        (recur (evaluate cur-state stmt))))))
-
-(defn evaluate
-  [state stmts]
-  (reduce evaluate-stmt state stmts))
+(defn evaluate [state stmts]
+  (let [evaluate-stmt
+          (fn [{:keys [tape data-pointer] :as state} stmt]
+            (case stmt
+              \> (update state :data-pointer inc)
+              \< (update state :data-pointer dec)
+              \+ (update-in state [:tape data-pointer] inc)
+              \- (update-in state [:tape data-pointer] dec)
+              \. (do (print (char (nth tape data-pointer))) state)
+              \, (let [ch (.read System/in)]
+                   (assoc-in state [:tape data-pointer] ch))
+              (loop [{:keys [tape data-pointer] :as cur-state} state]
+                (if (= (nth tape data-pointer) 0)
+                  cur-state
+                  (recur (evaluate cur-state stmt))))))]
+    (reduce evaluate-stmt state stmts)))
 
 (def initial-state
   {:tape (apply vector-of :byte (repeat 30000 0))
