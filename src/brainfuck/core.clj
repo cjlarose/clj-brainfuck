@@ -32,9 +32,7 @@
     \< (update state :data-pointer dec)
     \+ (update-in state [:tape data-pointer] inc)
     \- (update-in state [:tape data-pointer] dec)
-    \. (do
-         (print (char (nth tape data-pointer)))
-         state)
+    \. (do (print (char (nth tape data-pointer))) state)
     \, (let [ch (.read System/in)]
          (assoc-in state [:tape data-pointer] ch))
     (loop [{:keys [tape data-pointer] :as cur-state} state]
