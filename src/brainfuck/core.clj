@@ -45,7 +45,7 @@
   (lazy-seq
     (let [ch (.read rdr)]
       (if (= ch -1)
-        '()
+        '(0)
         (cons ch (byte-seq rdr))))))
 
 (def initial-state
