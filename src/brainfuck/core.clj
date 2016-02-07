@@ -35,7 +35,7 @@
                    (-> state
                        (assoc :input remaining)
                        (assoc-in [:tape data-pointer] ch)))
-              (loop [{:keys [input tape data-pointer] :as cur-state} state]
+              (loop [{:keys [tape data-pointer] :as cur-state} state]
                 (if (= (nth tape data-pointer) 0)
                   cur-state
                   (recur (evaluate cur-state stmt))))))]
