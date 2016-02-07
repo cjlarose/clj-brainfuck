@@ -22,22 +22,24 @@
 (defn parse [program]
   (first (parse-source program)))
 
-(defn evaluate [input state stmts]
+(defn evaluate [state stmts]
   (let [evaluate-stmt
-          (fn [[input {:keys [tape data-pointer] :as state}] stmt]
+          (fn [{:keys [input tape data-pointer] :as state} stmt]
             (case stmt
-              \> [input (update state :data-pointer inc)]
-              \< [input (update state :data-pointer dec)]
-              \+ [input (update-in state [:tape data-pointer] inc)]
-              \- [input (update-in state [:tape data-pointer] dec)]
-              \. (do (print (char (nth tape data-pointer))) [input state])
+              \> (update state :data-pointer inc)
+              \< (update state :data-pointer dec)
+              \+ (update-in state [:tape data-pointer] inc)
+              \- (update-in state [:tape data-pointer] dec)
+              \. (do (print (char (nth tape data-pointer))) state)
               \, (let [[ch & remaining] input]
-                   [remaining (assoc-in state [:tape data-pointer] ch)])
-              (loop [[input {:keys [tape data-pointer] :as cur-state}] [input state]]
+                   (-> state
+                       (assoc :input remaining)
+                       (assoc-in [:tape data-pointer] ch)))
+              (loop [{:keys [input tape data-pointer] :as cur-state} state]
                 (if (= (nth tape data-pointer) 0)
-                  [input cur-state]
-                  (recur (evaluate input cur-state stmt))))))]
-    (reduce evaluate-stmt [input state] stmts)))
+                  cur-state
+                  (recur (evaluate cur-state stmt))))))]
+    (reduce evaluate-stmt state stmts)))
 
 (defn byte-seq [^java.io.BufferedReader rdr]
   (lazy-seq
@@ -48,13 +50,13 @@
 
 (def initial-state
   {:tape (apply vector-of :byte (repeat 30000 0))
-   :data-pointer 0})
+   :data-pointer 0
+   :input (byte-seq (BufferedReader. *in*))})
 
 (defn -main
   "Reads brainfuck program from file, then executes it"
   [& args]
-  (let [in (byte-seq (BufferedReader. *in*))]
-    (->> (first args)
-         (slurp)
-         (parse)
-         (evaluate in initial-state))))
+  (->> (first args)
+       (slurp)
+       (parse)
+       (evaluate initial-state)))
