@@ -48,7 +48,7 @@
         :else
           (if (= (nth tape data-pointer) 0)
             (evaluate state remaining-stmts more)
-            (evaluate state stmt (concat stmts more)))))))
+            (evaluate state stmt (into (vec stmts) more)))))))
 
 (defn byte-seq [^java.io.BufferedReader rdr]
   (lazy-seq
