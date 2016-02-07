@@ -22,24 +22,33 @@
 (defn parse [program]
   (first (parse-source program)))
 
-(defn evaluate [state stmts]
-  (let [evaluate-stmt
-          (fn [{:keys [input tape data-pointer] :as state} stmt]
-            (case stmt
-              \> (update state :data-pointer inc)
-              \< (update state :data-pointer dec)
-              \+ (update-in state [:tape data-pointer] inc)
-              \- (update-in state [:tape data-pointer] dec)
-              \. (do (print (char (nth tape data-pointer))) state)
-              \, (let [[ch & remaining] input]
-                   (-> state
-                       (assoc :input remaining)
-                       (assoc-in [:tape data-pointer] ch)))
-              (loop [{:keys [tape data-pointer] :as cur-state} state]
-                (if (= (nth tape data-pointer) 0)
-                  cur-state
-                  (recur (evaluate cur-state stmt))))))]
-    (reduce evaluate-stmt state stmts)))
+(defn evaluate-stmt [{:keys [input tape data-pointer] :as state} stmt]
+  (case stmt
+    \> (update state :data-pointer inc)
+    \< (update state :data-pointer dec)
+    \+ (update-in state [:tape data-pointer] inc)
+    \- (update-in state [:tape data-pointer] dec)
+    \, (let [[ch & remaining] input]
+         (-> state
+             (assoc :input remaining)
+             (assoc-in [:tape data-pointer] ch)))))
+
+(defn evaluate
+  ([state stmts] (evaluate state stmts nil))
+  ([{:keys [tape data-pointer] :as state} [stmt & remaining-stmts :as stmts] more]
+    (lazy-seq
+      (cond
+        (nil? stmt)
+          (if more
+            (evaluate state more))
+        (= stmt \.)
+          (cons (char (nth tape data-pointer)) (evaluate state remaining-stmts more))
+        (commands stmt)
+          (evaluate (evaluate-stmt state stmt) remaining-stmts more)
+        :else
+          (if (= (nth tape data-pointer) 0)
+            (evaluate state remaining-stmts more)
+            (evaluate state stmt (concat stmts more)))))))
 
 (defn byte-seq [^java.io.BufferedReader rdr]
   (lazy-seq
@@ -56,7 +65,9 @@
 (defn -main
   "Reads brainfuck program from file, then executes it"
   [& args]
-  (->> (first args)
-       (slurp)
-       (parse)
-       (evaluate initial-state)))
+  (let [output (->> (first args)
+                 (slurp)
+                 (parse)
+                 (evaluate initial-state))]
+    (doseq [ch output]
+      (print ch))))
